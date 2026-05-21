@@ -1,100 +1,60 @@
-# Contributing
+# Contributing to typegap
 
-Thanks for helping improve this project.
+Thanks for your interest in contributing! Here's how to get started.
 
-This repository is intended to stay reviewable, reusable, and safe for future maintainers. Contributions should be small enough to review, clear about their intent, and verified before they are submitted.
+## Development Setup
 
-## Issues
+```bash
+git clone https://github.com/rogerchappel/typegap.git
+cd typegap
+npm install
+```
 
-Use issues for bugs, feature requests, documentation improvements, and agent tasks.
+## Scripts
 
-Before opening an issue:
+| Command | Description |
+|---|---|
+| `npm run build` | Compile TypeScript |
+| `npm run dev` | Run CLI from source |
+| `npm run check` | Type-check without building |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Format source with Prettier |
+| `npm test` | Run all tests |
+| `npm run test:watch` | Run tests in watch mode |
 
-- Search existing issues to avoid duplicates.
-- Confirm whether the request applies to this template repository or to a repository generated from it.
-- Include enough context for another maintainer or agent to reproduce the problem or understand the requested change.
+## Architecture
 
-For bug reports, include:
+```
+src/
+├── cli.ts       # CLI entry point (commander)
+├── parser.ts    # AST parsing and annotation detection
+├── analyzer.ts  # File discovery, aggregation, coverage math
+├── reporter.ts  # Output formatting (text/JSON/baseline)
+├── types.ts     # Shared type definitions
+└── *.test.ts    # Unit / integration tests
+```
 
-- What happened.
-- What you expected to happen.
-- Steps to reproduce, when applicable.
-- Relevant logs, screenshots, links, or files.
-- The smallest verification command or manual check that demonstrates the problem.
+## Adding New Checks
 
-For feature requests, include:
+1. Modify `src/parser.ts` to visit the new AST node type in the `visit()` switch
+2. Add a handler like `handleXxx()` that produces `NodeInfo[]`
+3. Run tests and add coverage
 
-- The use case.
-- Why the current template is insufficient.
-- Any risks, compatibility concerns, or migration notes.
-- Suggested files or templates that may need to change.
+## Testing
+
+```bash
+npm test              # Run all tests
+npm run test:watch    # Watch mode
+```
+
+Test fixtures are in `fixtures/`. Add fixture directories for new test scenarios.
 
 ## Pull Requests
 
-Pull requests should be focused on one reviewable intent.
+- Keep PRs focused — one feature or fix at a time
+- Ensure `npm test` passes and coverage thresholds are met
+- Update docs if changing CLI behavior
 
-Expected PR standards:
+## Code of Conduct
 
-- Use a branch for the change.
-- Keep unrelated formatting, dependency, generated file, and behavior changes separate.
-- Follow Conventional Commits for commit messages.
-- Update documentation or templates when behavior or workflow expectations change.
-- Do not include secrets, private credentials, private contact details, or client-specific information.
-- Do not imply paid support, guaranteed response times, or production SLAs unless the project explicitly provides them.
-
-## Review Packs
-
-Every meaningful PR should include a review pack in the PR body or final agent response.
-
-Use this format:
-
-```md
-## Review Pack
-Repo:
-Branch:
-PR:
-Task:
-Status: done / blocked / needs review
-Summary:
-Commits:
-Files changed:
-Verification:
-Risk level:
-Rollback plan:
-Human decision needed:
-Next recommended task:
-```
-
-Keep the review pack factual. It should say what changed, how it was verified, what remains risky, and what a reviewer should decide next.
-
-## Verification
-
-Every contribution needs verification appropriate to the change.
-
-Use the smallest relevant verification first:
-
-- Documentation-only changes: review the rendered Markdown or inspect the diff.
-- Template changes: confirm placeholders are clear and no project-specific private details were introduced.
-- CI or workflow changes: run the narrowest relevant local check, then confirm expected GitHub Actions behavior when possible.
-- Code changes in generated repositories: run the targeted test, typecheck, lint, build, or smoke command that proves the change.
-
-If verification cannot be run, say why and provide the exact command or manual check a maintainer should run.
-
-## Agent Contributions
-
-AI agent contributions must follow the same standards as human contributions.
-
-Agents should:
-
-- State the objective, blast radius, files likely to change, verification plan, and risk level before editing.
-- Work in small, atomic commits.
-- Review `git status` and `git diff` before staging.
-- Stage only files related to the current intent.
-- Avoid touching risky areas such as auth, billing, production data, secrets, licensing, telemetry, or public API compatibility without explicit maintainer approval.
-- Return a review pack when done.
-
-## Maintainer Review
-
-Maintainers may ask for smaller commits, clearer verification, reduced scope, or safer defaults before merging.
-
-No contribution is accepted until a maintainer reviews and approves it.
+Please be respectful and constructive. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
