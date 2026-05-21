@@ -1,0 +1,62 @@
+{
+  "name": "typegap",
+  "version": "0.1.0",
+  "description": "TypeScript type coverage auditor — find the holes without compiling",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "typegap": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "typescript",
+    "type-coverage",
+    "static-analysis",
+    "any-detection",
+    "audit",
+    "cli"
+  ],
+  "author": "Roger Chappel",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerchappel/typegap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/typegap/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/typegap#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@typescript-eslint/typescript-estree": "^8.0.0",
+    "commander": "^12.0.0",
+    "glob": "^10.0.0",
+    "picocolors": "^1.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^25.9.1",
+    "@vitest/coverage-v8": "^3.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}
