@@ -9,7 +9,7 @@ import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { analyzeDirectory } from './analyzer.js';
 import { generateReport, saveBaseline, loadBaseline } from './reporter.js';
-import { version } from '../package.json' with { type: 'json' };
+import { version } from './version.js';
 
 const program = new Command();
 
