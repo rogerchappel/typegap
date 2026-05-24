@@ -28,9 +28,29 @@ program
   .option('--pattern <pattern>', 'glob pattern for target files', '**/*.{ts,tsx}')
   .action(async (directory: string, opts: Record<string, unknown>) => {
     const dir = resolve(directory);
+    const format = opts.format as string;
+    const minCoverage = opts.minCoverage as number | undefined;
 
     if (!existsSync(dir)) {
       console.error(`Error: directory "${dir}" does not exist`);
+      process.exit(1);
+    }
+
+    if (format !== 'text' && format !== 'json') {
+      console.error(`Error: unsupported format "${format}". Use "text" or "json".`);
+      process.exit(1);
+    }
+
+    if (
+      minCoverage !== undefined
+      && (!Number.isFinite(minCoverage) || minCoverage < 0 || minCoverage > 100)
+    ) {
+      console.error('Error: --min-coverage must be a number between 0 and 100.');
+      process.exit(1);
+    }
+
+    if (opts.compare && !existsSync(resolve(opts.compare as string))) {
+      console.error(`Error: baseline file "${opts.compare}" does not exist`);
       process.exit(1);
     }
 
@@ -44,11 +64,11 @@ program
     });
 
     const { output, exitCode } = generateReport(result, {
-      format: (opts.format as 'text' | 'json') ?? 'text',
+      format,
       detail: (opts.detail as boolean) ?? false,
       saveBaseline: opts.baseline as string | undefined,
-      compareBaseline: opts.compare as string | undefined,
-      minCoverage: opts.minCoverage as number | undefined,
+      compareBaseline: opts.compare ? resolve(opts.compare as string) : undefined,
+      minCoverage,
       cwd: process.cwd(),
     });
 

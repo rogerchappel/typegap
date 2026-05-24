@@ -49,4 +49,22 @@ describe('CLI integration', () => {
       execSync(`${cli} /nonexistent/path`, { encoding: 'utf-8' });
     }).toThrow();
   });
+
+  it('errors on unsupported output format', () => {
+    expect(() => {
+      execSync(`${cli} fixtures/fully-typed --format yaml`, { encoding: 'utf-8' });
+    }).toThrow();
+  });
+
+  it('errors on invalid minimum coverage', () => {
+    expect(() => {
+      execSync(`${cli} fixtures/fully-typed --min-coverage 101`, { encoding: 'utf-8' });
+    }).toThrow();
+  });
+
+  it('errors on missing compare baseline', () => {
+    expect(() => {
+      execSync(`${cli} fixtures/fully-typed --compare fixtures/no-baseline.json`, { encoding: 'utf-8' });
+    }).toThrow();
+  });
 });
