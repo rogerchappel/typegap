@@ -75,7 +75,7 @@ program
     console.log(output);
 
     if (opts.baseline) {
-      saveBaseline(result, resolve(opts.baseline as string));
+      saveBaseline(result, resolve(opts.baseline as string), process.cwd());
       console.log(`Baseline saved to ${opts.baseline}`);
     }
 

@@ -97,6 +97,16 @@ describe('saveBaseline / loadBaseline', () => {
     expect(loaded.timestamp).toBeDefined();
     expect(new Date(loaded.timestamp)).toBeInstanceOf(Date);
   });
+
+  it('stores file paths relative to cwd when possible', () => {
+    const result = makeResult();
+    result.files[0].file = `${process.cwd()}/src/example.ts`;
+
+    saveBaseline(result, BASELINE_FILE, process.cwd());
+
+    const loaded = loadBaseline(BASELINE_FILE);
+    expect(loaded.files[0].file).toBe('src/example.ts');
+  });
 });
 
 describe('compareWithBaseline', () => {

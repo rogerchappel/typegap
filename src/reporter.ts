@@ -50,7 +50,7 @@ export function generateReport(result: ProjectResult, options: ReportOptions = {
 /* ------------------------------------------------------------------ */
 
 /** Save a baseline JSON file */
-export function saveBaseline(result: ProjectResult, filePath: string): void {
+export function saveBaseline(result: ProjectResult, filePath: string, cwd = process.cwd()): void {
   const baseline: Baseline = {
     version: 1,
     total: result.total,
@@ -59,8 +59,8 @@ export function saveBaseline(result: ProjectResult, filePath: string): void {
     anyCount: result.anyCount,
     unknownCount: result.unknownCount,
     implicitCount: result.implicitCount,
-    files: result.files.map(f => ({
-      file: f.file,
+    files: result.files.map((f) => ({
+      file: normalizeBaselinePath(f.file, cwd),
       total: f.total,
       annotated: f.annotated,
       coverage: f.coverage,
@@ -79,7 +79,7 @@ export function loadBaseline(filePath: string): Baseline {
 }
 
 /** Compare current result against saved baseline */
-export function compareWithBaseline(result: ProjectResult, baseline: Baseline): string {
+export function compareWithBaseline(result: ProjectResult, baseline: Baseline, cwd = process.cwd()): string {
   const lines: string[] = [];
   lines.push(pc.bold('\nBaseline Comparison'));
   lines.push(pc.dim(`  vs ${new Date(baseline.timestamp).toLocaleString()}`));
@@ -95,24 +95,26 @@ export function compareWithBaseline(result: ProjectResult, baseline: Baseline): 
   lines.push('');
 
   // per-file deltas
-  const baselineMap = new Map(baseline.files.map(f => [f.file, f]));
+  const baselineMap = new Map(baseline.files.map((f) => [normalizeBaselinePath(f.file, cwd), f]));
 
   for (const f of result.files) {
-    const prev = baselineMap.get(f.file);
+    const filePath = normalizeBaselinePath(f.file, cwd);
+    const prev = baselineMap.get(filePath);
     if (!prev) continue;
 
     const delta = f.coverage - prev.coverage;
     if (delta !== 0) {
       const color = delta > 0 ? pc.green : pc.red;
       const a = delta > 0 ? '↑' : '↓';
-      lines.push(`  ${f.file}: ${color(`${a}${Math.abs(delta).toFixed(1)}%`)}`);
+      lines.push(`  ${filePath}: ${color(`${a}${Math.abs(delta).toFixed(1)}%`)}`);
     }
   }
 
   // New files not in baseline
   for (const f of result.files) {
-    if (!baselineMap.has(f.file)) {
-      lines.push(`  ${f.file}: ${pc.yellow('new')} (${f.coverage.toFixed(1)}%)`);
+    const filePath = normalizeBaselinePath(f.file, cwd);
+    if (!baselineMap.has(filePath)) {
+      lines.push(`  ${filePath}: ${pc.yellow('new')} (${f.coverage.toFixed(1)}%)`);
     }
   }
 
@@ -194,7 +196,7 @@ function formatText(result: ProjectResult, options: ReportOptions = {}): string 
   // Baseline comparison
   if (options.compareBaseline && existsSync(options.compareBaseline)) {
     const baseline = loadBaseline(options.compareBaseline);
-    lines.push(compareWithBaseline(result, baseline));
+    lines.push(compareWithBaseline(result, baseline, cwd));
   }
 
   return lines.join('\n');
@@ -251,4 +253,9 @@ function formatIssueLabel(node: NodeInfo): string {
 function checkMinCoverage(result: ProjectResult, minCoverage: number | undefined): number {
   if (minCoverage === undefined) return 0;
   return result.coverage >= minCoverage ? 0 : 1;
+}
+
+function normalizeBaselinePath(filePath: string, cwd: string): string {
+  const relPath = relative(cwd, filePath);
+  return relPath.startsWith('..') ? filePath : relPath;
 }
