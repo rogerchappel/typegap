@@ -3,9 +3,10 @@ export { parseFile, parseSource, classifyTypeAnnotation, extractTypeName } from 
 export {
   compareWithBaseline,
   generateReport,
+  getBaselineComparison,
   loadBaseline,
   saveBaseline,
   type ReportOptions,
 } from './reporter.js';
-export type { Baseline, FileResult, NodeInfo, ProjectResult } from './types.js';
+export type { Baseline, BaselineComparison, FileResult, NodeInfo, ProjectResult } from './types.js';
 export { AnnotationStatus, IssueType } from './types.js';
