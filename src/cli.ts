@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * typegap CLI — TypeScript type coverage auditor
  *
@@ -8,15 +9,15 @@ import { Command } from 'commander';
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { analyzeDirectory } from './analyzer.js';
-import { generateReport, saveBaseline, loadBaseline } from './reporter.js';
-import { version } from '../package.json' with { type: 'json' };
+import { generateReport, saveBaseline } from './reporter.js';
+import packageJson from '../package.json' with { type: 'json' };
 
 const program = new Command();
 
 program
   .name('typegap')
   .description('TypeScript type coverage auditor — find the holes without compiling')
-  .version(version)
+  .version(packageJson.version)
   .argument('[directory]', 'directory to scan', '.')
   .option('--ignore <patterns>', 'glob patterns to ignore (comma-separated)')
   .option('--format <type>', 'output format: text or json', 'text')
