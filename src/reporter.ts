@@ -5,7 +5,7 @@
 
 import { relative } from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import type { ProjectResult, FileResult, Baseline, NodeInfo } from './types.js';
+import type { ProjectResult, FileResult, Baseline, BaselineComparison, NodeInfo } from './types.js';
 import { AnnotationStatus, IssueType } from './types.js';
 import pc from 'picocolors';
 
@@ -50,7 +50,7 @@ export function generateReport(result: ProjectResult, options: ReportOptions = {
 /* ------------------------------------------------------------------ */
 
 /** Save a baseline JSON file */
-export function saveBaseline(result: ProjectResult, filePath: string): void {
+export function saveBaseline(result: ProjectResult, filePath: string, cwd = process.cwd()): void {
   const baseline: Baseline = {
     version: 1,
     total: result.total,
@@ -59,8 +59,8 @@ export function saveBaseline(result: ProjectResult, filePath: string): void {
     anyCount: result.anyCount,
     unknownCount: result.unknownCount,
     implicitCount: result.implicitCount,
-    files: result.files.map(f => ({
-      file: f.file,
+    files: result.files.map((f) => ({
+      file: normalizeBaselinePath(f.file, cwd),
       total: f.total,
       annotated: f.annotated,
       coverage: f.coverage,
@@ -79,40 +79,31 @@ export function loadBaseline(filePath: string): Baseline {
 }
 
 /** Compare current result against saved baseline */
-export function compareWithBaseline(result: ProjectResult, baseline: Baseline): string {
+export function compareWithBaseline(result: ProjectResult, baseline: Baseline, cwd = process.cwd()): string {
+  const comparison = getBaselineComparison(result, baseline, cwd);
   const lines: string[] = [];
   lines.push(pc.bold('\nBaseline Comparison'));
   lines.push(pc.dim(`  vs ${new Date(baseline.timestamp).toLocaleString()}`));
   lines.push('');
 
-  const coverageDelta = result.coverage - baseline.coverage;
+  const coverageDelta = comparison.coverageDelta;
   const coverageColor = coverageDelta >= 0 ? pc.green : pc.red;
   const arrow = coverageDelta >= 0 ? '↑' : '↓';
 
   lines.push(`  Coverage:   ${coverageColor(`${arrow} ${Math.abs(coverageDelta).toFixed(1)}%`)}`);
-  lines.push(`    Before:   ${baseline.coverage.toFixed(1)}%`);
-  lines.push(`    Current:  ${result.coverage.toFixed(1)}%`);
+  lines.push(`    Before:   ${comparison.coverageBefore.toFixed(1)}%`);
+  lines.push(`    Current:  ${comparison.coverageCurrent.toFixed(1)}%`);
   lines.push('');
 
-  // per-file deltas
-  const baselineMap = new Map(baseline.files.map(f => [f.file, f]));
-
-  for (const f of result.files) {
-    const prev = baselineMap.get(f.file);
-    if (!prev) continue;
-
-    const delta = f.coverage - prev.coverage;
-    if (delta !== 0) {
-      const color = delta > 0 ? pc.green : pc.red;
-      const a = delta > 0 ? '↑' : '↓';
-      lines.push(`  ${f.file}: ${color(`${a}${Math.abs(delta).toFixed(1)}%`)}`);
+  for (const file of comparison.files) {
+    if (file.status === 'changed' && file.coverageDelta !== undefined && file.coverageDelta !== 0) {
+      const color = file.coverageDelta > 0 ? pc.green : pc.red;
+      const a = file.coverageDelta > 0 ? '↑' : '↓';
+      lines.push(`  ${file.file}: ${color(`${a}${Math.abs(file.coverageDelta).toFixed(1)}%`)}`);
     }
-  }
 
-  // New files not in baseline
-  for (const f of result.files) {
-    if (!baselineMap.has(f.file)) {
-      lines.push(`  ${f.file}: ${pc.yellow('new')} (${f.coverage.toFixed(1)}%)`);
+    if (file.status === 'new') {
+      lines.push(`  ${file.file}: ${pc.yellow('new')} (${file.coverageCurrent.toFixed(1)}%)`);
     }
   }
 
@@ -194,7 +185,7 @@ function formatText(result: ProjectResult, options: ReportOptions = {}): string 
   // Baseline comparison
   if (options.compareBaseline && existsSync(options.compareBaseline)) {
     const baseline = loadBaseline(options.compareBaseline);
-    lines.push(compareWithBaseline(result, baseline));
+    lines.push(compareWithBaseline(result, baseline, cwd));
   }
 
   return lines.join('\n');
@@ -204,7 +195,10 @@ function formatText(result: ProjectResult, options: ReportOptions = {}): string 
 /* JSON formatter                                                     */
 /* ------------------------------------------------------------------ */
 
-function formatJson(result: ProjectResult, _options: ReportOptions = {}): string {
+function formatJson(result: ProjectResult, options: ReportOptions = {}): string {
+  const baseline = options.compareBaseline && existsSync(options.compareBaseline)
+    ? loadBaseline(options.compareBaseline)
+    : undefined;
   const output = {
     coverage: result.coverage,
     total: result.total,
@@ -221,6 +215,9 @@ function formatJson(result: ProjectResult, _options: ReportOptions = {}): string
       unknownCount: f.unknownCount,
       implicitCount: f.implicitCount,
     })),
+    comparison: baseline
+      ? getBaselineComparison(result, baseline, options.cwd ?? process.cwd())
+      : undefined,
   };
   return JSON.stringify(output, null, 2) + '\n';
 }
@@ -251,4 +248,55 @@ function formatIssueLabel(node: NodeInfo): string {
 function checkMinCoverage(result: ProjectResult, minCoverage: number | undefined): number {
   if (minCoverage === undefined) return 0;
   return result.coverage >= minCoverage ? 0 : 1;
+}
+
+function normalizeBaselinePath(filePath: string, cwd: string): string {
+  const relPath = relative(cwd, filePath);
+  return relPath.startsWith('..') ? filePath : relPath;
+}
+
+export function getBaselineComparison(
+  result: ProjectResult,
+  baseline: Baseline,
+  cwd = process.cwd(),
+): BaselineComparison {
+  const baselineMap = new Map(baseline.files.map((f) => [normalizeBaselinePath(f.file, cwd), f]));
+  const files: BaselineComparison['files'] = [];
+
+  for (const f of result.files) {
+    const filePath = normalizeBaselinePath(f.file, cwd);
+    const prev = baselineMap.get(filePath);
+
+    if (!prev) {
+      files.push({
+        file: filePath,
+        coverageCurrent: f.coverage,
+        status: 'new',
+      });
+      continue;
+    }
+
+    const coverageDelta = round(f.coverage - prev.coverage);
+    if (coverageDelta !== 0) {
+      files.push({
+        file: filePath,
+        coverageBefore: prev.coverage,
+        coverageCurrent: f.coverage,
+        coverageDelta,
+        status: 'changed',
+      });
+    }
+  }
+
+  return {
+    baselineTimestamp: baseline.timestamp,
+    coverageBefore: baseline.coverage,
+    coverageCurrent: result.coverage,
+    coverageDelta: round(result.coverage - baseline.coverage),
+    files,
+  };
+}
+
+function round(n: number): number {
+  return Math.round(n * 10) / 10;
 }

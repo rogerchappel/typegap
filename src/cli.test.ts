@@ -39,14 +39,31 @@ describe('CLI integration', () => {
   });
 
   it('scans current directory when no argument', () => {
-    // This should scan the project's own src files
-    const output = execSync(`cd /Users/roger/Developer/my-opensource/typegap && ${cli}`, { encoding: 'utf-8' });
+    const output = execSync(cli, { encoding: 'utf-8', cwd: process.cwd() });
     expect(output).toContain('Coverage');
   });
 
   it('errors on nonexistent directory', () => {
     expect(() => {
       execSync(`${cli} /nonexistent/path`, { encoding: 'utf-8' });
+    }).toThrow();
+  });
+
+  it('errors on unsupported output format', () => {
+    expect(() => {
+      execSync(`${cli} fixtures/fully-typed --format yaml`, { encoding: 'utf-8' });
+    }).toThrow();
+  });
+
+  it('errors on invalid minimum coverage', () => {
+    expect(() => {
+      execSync(`${cli} fixtures/fully-typed --min-coverage 101`, { encoding: 'utf-8' });
+    }).toThrow();
+  });
+
+  it('errors on missing compare baseline', () => {
+    expect(() => {
+      execSync(`${cli} fixtures/fully-typed --compare fixtures/no-baseline.json`, { encoding: 'utf-8' });
     }).toThrow();
   });
 });

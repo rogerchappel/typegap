@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { generateReport, saveBaseline, loadBaseline, compareWithBaseline } from './reporter.js';
+import { generateReport, saveBaseline, loadBaseline, compareWithBaseline, getBaselineComparison } from './reporter.js';
 import { buildProjectResult } from './analyzer.js';
 import { AnnotationStatus } from './types.js';
 import type { FileResult } from './types.js';
@@ -44,6 +44,33 @@ describe('generateReport', () => {
     expect(json.coverage).toBe(75);
     expect(json.files).toHaveLength(1);
     expect(json.anyCount).toBe(1);
+  });
+
+  it('includes baseline comparison in JSON output when comparing', () => {
+    const oldResult = makeResult();
+    saveBaseline(oldResult, BASELINE_FILE);
+
+    const newResult = makeResult();
+    newResult.coverage = 90;
+    newResult.files[0].coverage = 90;
+
+    const { output } = generateReport(newResult, { format: 'json', compareBaseline: BASELINE_FILE });
+    const json = JSON.parse(output);
+
+    expect(json.comparison).toMatchObject({
+      coverageBefore: 75,
+      coverageCurrent: 90,
+      coverageDelta: 15,
+    });
+    expect(json.comparison.files).toEqual([
+      {
+        file: 'test.ts',
+        coverageBefore: 75,
+        coverageCurrent: 90,
+        coverageDelta: 15,
+        status: 'changed',
+      },
+    ]);
   });
 
   it('returns exit code 0 when above min coverage', () => {
@@ -97,6 +124,16 @@ describe('saveBaseline / loadBaseline', () => {
     expect(loaded.timestamp).toBeDefined();
     expect(new Date(loaded.timestamp)).toBeInstanceOf(Date);
   });
+
+  it('stores file paths relative to cwd when possible', () => {
+    const result = makeResult();
+    result.files[0].file = `${process.cwd()}/src/example.ts`;
+
+    saveBaseline(result, BASELINE_FILE, process.cwd());
+
+    const loaded = loadBaseline(BASELINE_FILE);
+    expect(loaded.files[0].file).toBe('src/example.ts');
+  });
 });
 
 describe('compareWithBaseline', () => {
@@ -129,6 +166,50 @@ describe('compareWithBaseline', () => {
     const output = compareWithBaseline(newResult, baseline);
     expect(output).toContain('75.0%');
     expect(output).toContain('90.0%');
+  });
+});
+
+describe('getBaselineComparison', () => {
+  it('returns changed and new files as structured data', () => {
+    const oldResult = makeResult();
+    saveBaseline(oldResult, BASELINE_FILE);
+    const baseline = loadBaseline(BASELINE_FILE);
+
+    const newResult = makeResult();
+    newResult.coverage = 80;
+    newResult.files[0].coverage = 70;
+    newResult.files.push({
+      file: 'new.ts',
+      total: 2,
+      annotated: 2,
+      anyCount: 0,
+      unknownCount: 0,
+      implicitCount: 0,
+      coverage: 100,
+      nodes: [],
+    });
+
+    const comparison = getBaselineComparison(newResult, baseline);
+
+    expect(comparison).toMatchObject({
+      coverageBefore: 75,
+      coverageCurrent: 80,
+      coverageDelta: 5,
+    });
+    expect(comparison.files).toEqual([
+      {
+        file: 'test.ts',
+        coverageBefore: 75,
+        coverageCurrent: 70,
+        coverageDelta: -5,
+        status: 'changed',
+      },
+      {
+        file: 'new.ts',
+        coverageCurrent: 100,
+        status: 'new',
+      },
+    ]);
   });
 });
 

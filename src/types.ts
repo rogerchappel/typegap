@@ -82,3 +82,18 @@ export interface Baseline {
   }>;
   timestamp: string;
 }
+
+/** Machine-readable baseline comparison summary */
+export interface BaselineComparison {
+  baselineTimestamp: string;
+  coverageBefore: number;
+  coverageCurrent: number;
+  coverageDelta: number;
+  files: Array<{
+    file: string;
+    coverageBefore?: number;
+    coverageCurrent: number;
+    coverageDelta?: number;
+    status: 'changed' | 'new';
+  }>;
+}
