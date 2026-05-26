@@ -26,10 +26,12 @@
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src",
     "validate": "bash scripts/validate.sh",
-    "smoke": "npm run build && node dist/cli.js fixtures/mixed --detail --min-coverage 40",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke",
+    "package:smoke": "npm pack --dry-run",
+    "smoke": "npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text"
   },
   "keywords": [
     "typescript",

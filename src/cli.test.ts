@@ -39,8 +39,7 @@ describe('CLI integration', () => {
   });
 
   it('scans current directory when no argument', () => {
-    // This should scan the project's own src files
-    const output = execSync(`cd /Users/roger/Developer/my-opensource/typegap && ${cli}`, { encoding: 'utf-8' });
+    const output = execSync(cli, { encoding: 'utf-8', cwd: process.cwd() });
     expect(output).toContain('Coverage');
   });
 
