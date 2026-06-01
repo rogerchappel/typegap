@@ -153,8 +153,8 @@ function formatText(result: ProjectResult, options: ReportOptions = {}): string 
 
       const issuesStr = issues.length > 0 ? pc.red(` (${issues.join(', ')})`) : pc.green(' ✓');
       lines.push(`  ${pc.dim('│')} ${cov.padEnd(8)} ${relPath + issuesStr}`);
-      lines.push(`  ${pc.dim('└' + '─'.repeat(60) + '┘')}`);
     }
+    lines.push(`  ${pc.dim('└' + '─'.repeat(60) + '┘')}`);
 
     lines.push('');
   }

@@ -92,6 +92,27 @@ describe('generateReport', () => {
     // Should list implicit and any issues
     expect(output).toMatch(/\bimplicit\b|\bany\b/i);
   });
+
+  it('renders one file table border around all file rows', () => {
+    const result = makeResult();
+    result.files.push({
+      file: 'other.ts',
+      total: 1,
+      annotated: 1,
+      anyCount: 0,
+      unknownCount: 0,
+      implicitCount: 0,
+      coverage: 100,
+      nodes: [],
+    });
+
+    const { output } = generateReport(result, { format: 'text' });
+
+    expect(output.match(/┌/g)).toHaveLength(1);
+    expect(output.match(/└/g)).toHaveLength(1);
+    expect(output).toContain('test.ts');
+    expect(output).toContain('other.ts');
+  });
 });
 
 describe('saveBaseline / loadBaseline', () => {
