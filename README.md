@@ -134,3 +134,16 @@ npm test
 ## License
 
 MIT © [Roger Chappel](https://github.com/rogerchappel)
+
+## Development
+
+Run the same checks locally before opening a PR:
+
+- `npm run check` - tsc --noEmit
+- `npm run lint` - eslint src --ext .ts
+- `npm run build` - tsc
+- `npm test` - vitest run --coverage
+- `npm run smoke` - npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text
+- `npm run validate` - bash scripts/validate.sh
+- `npm run package:smoke` - npm pack --dry-run
+- `npm run release:check` - npm run check && npm test && npm run smoke && npm run package:smoke
