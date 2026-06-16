@@ -137,7 +137,13 @@ MIT © [Roger Chappel](https://github.com/rogerchappel)
 
 ## Development
 
-Run the same checks locally before opening a PR:
+Run the same release gate used by CI before opening a PR:
+
+```bash
+npm run release:check
+```
+
+The release gate covers:
 
 - `npm run check` - tsc --noEmit
 - `npm run lint` - eslint src --ext .ts
