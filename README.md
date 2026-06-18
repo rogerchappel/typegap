@@ -153,3 +153,14 @@ The release gate covers:
 - `npm run validate` - bash scripts/validate.sh
 - `npm run package:smoke` - npm pack --dry-run
 - `npm run release:check` - npm run check && npm test && npm run smoke && npm run package:smoke
+
+## Release readiness
+
+Run the release gate before tagging or publishing:
+
+```sh
+npm run release:check
+npm pack --dry-run
+```
+
+The package smoke check prints the tarball contents so missing runtime files are caught before release.
