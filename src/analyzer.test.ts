@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { buildFileResult, buildProjectResult, analyzeDirectory } from './analyzer.js';
-import { parseFile } from './parser.js';
 import type { NodeInfo } from './types.js';
 import { AnnotationStatus } from './types.js';
 

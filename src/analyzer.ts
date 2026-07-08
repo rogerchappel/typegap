@@ -3,7 +3,6 @@
  * applies ignore patterns, calculates coverage.
  */
 
-import { relative } from 'node:path';
 import type { NodeInfo, FileResult, ProjectResult } from './types.js';
 import { parseFile } from './parser.js';
 import { glob } from 'glob';
@@ -34,6 +33,7 @@ export async function analyzeFiles(
   filePaths: string[],
   options: AnalyzeOptions = {},
 ): Promise<ProjectResult> {
+  void options;
   const fileResults: FileResult[] = [];
 
   for (const file of filePaths) {

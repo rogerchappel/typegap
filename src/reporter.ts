@@ -5,8 +5,8 @@
 
 import { relative } from 'node:path';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import type { ProjectResult, FileResult, Baseline, BaselineComparison, NodeInfo } from './types.js';
-import { AnnotationStatus, IssueType } from './types.js';
+import type { ProjectResult, Baseline, BaselineComparison, NodeInfo } from './types.js';
+import { IssueType } from './types.js';
 import pc from 'picocolors';
 
 /* ------------------------------------------------------------------ */
