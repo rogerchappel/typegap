@@ -23,7 +23,7 @@
     "CONTRIBUTING.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/cli.js",
     "dev": "tsx src/cli.ts",
     "check": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
@@ -32,8 +32,8 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build",
-    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke",
-    "package:smoke": "npm pack --dry-run",
+    "release:check": "npm run check && npm run lint && npm test && npm run smoke && npm run package:smoke",
+    "package:smoke": "npm run build && node scripts/package-smoke.mjs",
     "smoke": "npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text"
   },
   "keywords": [
@@ -71,6 +71,7 @@
     "prettier": "^3.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.0.0",
+    "typescript-eslint": "^8.63.0",
     "vitest": "^3.0.0"
   }
 }

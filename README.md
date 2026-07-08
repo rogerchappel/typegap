@@ -147,12 +147,12 @@ The release gate covers:
 
 - `npm run check` - tsc --noEmit
 - `npm run lint` - eslint src --ext .ts
-- `npm run build` - tsc
+- `npm run build` - tsc && chmod +x dist/cli.js
 - `npm test` - vitest run --coverage
 - `npm run smoke` - npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text
 - `npm run validate` - bash scripts/validate.sh
-- `npm run package:smoke` - npm pack --dry-run
-- `npm run release:check` - npm run check && npm test && npm run smoke && npm run package:smoke
+- `npm run package:smoke` - npm run build && node scripts/package-smoke.mjs
+- `npm run release:check` - npm run check && npm run lint && npm test && npm run smoke && npm run package:smoke
 
 ## Release readiness
 

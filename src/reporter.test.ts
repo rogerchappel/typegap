@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { generateReport, saveBaseline, loadBaseline, compareWithBaseline, getBaselineComparison } from './reporter.js';
 import { buildProjectResult } from './analyzer.js';
 import { AnnotationStatus } from './types.js';
@@ -25,7 +25,7 @@ function makeResult(override: Partial<FileResult> & Partial<ReturnType<typeof bu
       ],
     },
   ];
-  return buildProjectResult(files);
+  return { ...buildProjectResult(files), ...override };
 }
 
 describe('generateReport', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSource, parseFile, classifyTypeAnnotation, extractTypeName } from './parser.js';
+import { parseSource, parseFile, extractTypeName } from './parser.js';
 import { AnnotationStatus, IssueType } from './types.js';
 import type { TSESTree } from '@typescript-eslint/typescript-estree';
 import { parse } from '@typescript-eslint/typescript-estree';
