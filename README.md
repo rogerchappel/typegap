@@ -131,6 +131,13 @@ npm run build
 npm test
 ```
 
+## Limitations and Safety
+
+- TypeScript type coverage auditor — find the holes without compiling; it is intended for local, reviewable developer workflows rather than unattended production automation.
+- Review generated output before using it in commits, releases, issue updates, or connector actions.
+- Avoid passing secrets, private customer data, or unredacted logs through fixtures, examples, or command output.
+- Treat warnings and non-zero exits from `typegap` as review signals, then rerun the documented verification command after changes.
+
 ## License
 
 MIT © [Roger Chappel](https://github.com/rogerchappel)
