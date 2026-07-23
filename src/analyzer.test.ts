@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { buildFileResult, buildProjectResult, analyzeDirectory } from './analyzer.js';
 import type { NodeInfo } from './types.js';
 import { AnnotationStatus } from './types.js';
@@ -82,6 +85,32 @@ describe('buildProjectResult', () => {
 });
 
 describe('analyzeDirectory', () => {
+  it('keeps default discovery exclusions', async () => {
+    const fixtureDir = await mkdtemp(join(tmpdir(), 'typegap-discovery-'));
+
+    try {
+      await mkdir(join(fixtureDir, 'dist'));
+      await writeFile(join(fixtureDir, 'included.ts'), 'export const value: string = "included";');
+      await writeFile(join(fixtureDir, 'excluded.test.ts'), 'export const value = "test";');
+      await writeFile(join(fixtureDir, 'excluded.d.ts'), 'export declare const value: string;');
+      await writeFile(join(fixtureDir, 'dist', 'excluded.ts'), 'export const value = "dist";');
+
+      const result = await analyzeDirectory(fixtureDir);
+
+      expect(result.files.map((file) => file.file)).toEqual([join(fixtureDir, 'included.ts')]);
+    } finally {
+      await rm(fixtureDir, { recursive: true, force: true });
+    }
+  });
+
+  it('limits discovery to a custom pattern', async () => {
+    const result = await analyzeDirectory('fixtures', { pattern: '**/*.tsx' });
+
+    expect(result.files.map((file) => file.file)).toEqual([
+      expect.stringMatching(/fixtures\/tsx-project\/component\.tsx$/),
+    ]);
+  });
+
   it('analyzes fully-typed fixture with 100% coverage', async () => {
     const result = await analyzeDirectory('fixtures/fully-typed');
     expect(result.files.length).toBeGreaterThan(0);
