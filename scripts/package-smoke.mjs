@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const result = spawnSync("npm", ["pack", "--dry-run", "--json"], {
   encoding: "utf8",
@@ -64,4 +66,44 @@ if (!readFileSync(binPath, "utf8").startsWith("#!/usr/bin/env node")) {
   process.exit(1);
 }
 
-console.log(`typegap package smoke passed with ${packument.files.length} packed file(s).`);
+const smokeDir = mkdtempSync(join(tmpdir(), "typegap-package-smoke-"));
+
+try {
+  const packResult = spawnSync("npm", ["pack", "--json", "--pack-destination", smokeDir], {
+    encoding: "utf8",
+  });
+
+  if (packResult.status !== 0) {
+    process.stderr.write(packResult.stderr);
+    process.exit(packResult.status ?? 1);
+  }
+
+  const [packed] = JSON.parse(packResult.stdout);
+  const tarballPath = join(smokeDir, packed.filename);
+  const installResult = spawnSync("npm", ["install", "--ignore-scripts", tarballPath], {
+    cwd: smokeDir,
+    encoding: "utf8",
+  });
+
+  if (installResult.status !== 0) {
+    process.stderr.write(installResult.stderr);
+    process.exit(installResult.status ?? 1);
+  }
+
+  const cliResult = spawnSync(join(smokeDir, "node_modules", ".bin", "typegap"), ["--help"], {
+    cwd: smokeDir,
+    encoding: "utf8",
+  });
+
+  if (cliResult.status !== 0 || !cliResult.stdout.includes("Usage: typegap")) {
+    process.stderr.write(cliResult.stderr);
+    console.error("installed package smoke failed to run the typegap CLI.");
+    process.exit(cliResult.status ?? 1);
+  }
+
+  console.log(
+    `typegap package smoke passed with ${packument.files.length} packed file(s) and an installed CLI invocation.`,
+  );
+} finally {
+  rmSync(smokeDir, { recursive: true, force: true });
+}
