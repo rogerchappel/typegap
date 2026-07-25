@@ -144,8 +144,8 @@ MIT © [Roger Chappel](https://github.com/rogerchappel)
 
 ## Development
 
-Typegap supports Node.js 18.18+, 20.9+, and 22 or newer. Node.js 19 and 21
-are not supported because the shipped runtime dependency set does not support
+Typegap supports Node.js 20.9+ and 22 or newer. Node.js 21
+is not supported because the shipped runtime dependency set does not support
 those releases.
 
 Run the same release gate used by CI before opening a PR:
