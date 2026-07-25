@@ -28,6 +28,12 @@ format and uses semantic versioning when versioned releases are published.
 - Tightened template file validation and aligned generated workflow action
   versions.
 
+### Fixed
+
+- Load the CLI version from its TypeScript module instead of a JSON import
+  attribute, and align the documented Node.js 20 minimum with the installed
+  development toolchain at Node.js 20.19.
+
 ## Release Links
 
 - Unreleased:

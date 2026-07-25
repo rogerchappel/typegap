@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 describe('CLI integration', () => {
   const cli = 'npx tsx src/cli.ts';
@@ -8,6 +9,12 @@ describe('CLI integration', () => {
     const output = execSync(`${cli} --help`, { encoding: 'utf-8' });
     expect(output).toContain('typegap');
     expect(output).toContain('TypeScript type coverage auditor');
+  });
+
+  it('reports the package version', () => {
+    const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as { version: string };
+    const output = execSync(`${cli} --version`, { encoding: 'utf-8' });
+    expect(output.trim()).toBe(packageJson.version);
   });
 
   it('scans the fixtures directory', () => {

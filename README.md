@@ -144,7 +144,7 @@ MIT © [Roger Chappel](https://github.com/rogerchappel)
 
 ## Development
 
-Typegap supports Node.js 20.9+ and 22 or newer. Node.js 21
+Typegap supports Node.js 20.19+ and 22 or newer. Node.js 21
 is not supported because the shipped runtime dependency set does not support
 those releases.
 
