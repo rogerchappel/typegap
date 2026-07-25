@@ -10,14 +10,14 @@ import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { analyzeDirectory } from './analyzer.js';
 import { generateReport, saveBaseline } from './reporter.js';
-import packageJson from '../package.json' with { type: 'json' };
+import { version } from './version.js';
 
 const program = new Command();
 
 program
   .name('typegap')
   .description('TypeScript type coverage auditor — find the holes without compiling')
-  .version(packageJson.version)
+  .version(version)
   .argument('[directory]', 'directory to scan', '.')
   .option('--ignore <patterns>', 'glob patterns to ignore (comma-separated)')
   .option('--format <type>', 'output format: text or json', 'text')
