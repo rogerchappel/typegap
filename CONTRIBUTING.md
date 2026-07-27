@@ -19,8 +19,10 @@ npm install
 | `npm run check` | Type-check without building |
 | `npm run lint` | Run ESLint |
 | `npm run format` | Format source with Prettier |
+| `npm run audit:all` | Audit all dependencies, including development tooling |
 | `npm test` | Run all tests |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run release:check` | Run the complete CI and release-readiness gate |
 
 ## Architecture
 
@@ -52,7 +54,7 @@ Test fixtures are in `fixtures/`. Add fixture directories for new test scenarios
 ## Pull Requests
 
 - Keep PRs focused — one feature or fix at a time
-- Ensure `npm test` passes and coverage thresholds are met
+- Ensure `npm run release:check` passes
 - Update docs if changing CLI behavior
 
 ## Code of Conduct
