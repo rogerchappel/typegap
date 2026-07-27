@@ -156,6 +156,7 @@ npm run release:check
 
 The release gate covers:
 
+- `npm run audit:all` - audit the complete dependency graph, including development tooling
 - `npm run audit:prod` - audit shipped dependencies for known vulnerabilities
 - `npm run check` - tsc --noEmit
 - `npm run lint` - eslint src --ext .ts
@@ -164,7 +165,7 @@ The release gate covers:
 - `npm run smoke` - npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text
 - `npm run validate` - bash scripts/validate.sh
 - `npm run package:smoke` - npm run build && node scripts/package-smoke.mjs
-- `npm run release:check` - production audit, typecheck, lint, tests, smoke checks, and package smoke check
+- `npm run release:check` - full and production audits, typecheck, lint, tests, smoke checks, and package smoke check
 
 ## Release readiness
 
