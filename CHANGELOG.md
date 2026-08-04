@@ -30,6 +30,8 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Fixed
 
+- Updated the `brace-expansion` override to 5.0.9 to address
+  [GHSA-rgw5-rvv9-x895](https://github.com/advisories/GHSA-rgw5-rvv9-x895).
 - Load the CLI version from its TypeScript module instead of a JSON import
   attribute, and align the documented Node.js 20 minimum with the installed
   development toolchain at Node.js 20.19.
