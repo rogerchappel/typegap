@@ -30,6 +30,8 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Fixed
 
+- Refreshed the `js-yaml` development dependency to address
+  [GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj).
 - Updated the `brace-expansion` override to 5.0.9 to address
   [GHSA-rgw5-rvv9-x895](https://github.com/advisories/GHSA-rgw5-rvv9-x895).
 - Load the CLI version from its TypeScript module instead of a JSON import
