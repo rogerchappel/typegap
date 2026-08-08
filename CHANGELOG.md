@@ -30,6 +30,9 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Fixed
 
+- Updated the `nanoid` development dependency override to 3.3.17 to address
+  [GHSA-2v37-7h3g-55p8](https://github.com/advisories/GHSA-2v37-7h3g-55p8)
+  and restore the CI release audit gate.
 - Refreshed the `js-yaml` development dependency to address
   [GHSA-5p4m-2wfm-xmqj](https://github.com/advisories/GHSA-5p4m-2wfm-xmqj).
 - Updated the `brace-expansion` override to 5.0.9 to address
