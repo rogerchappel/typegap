@@ -137,6 +137,47 @@ describe('classifyTypeAnnotation for TSInferType', () => {
   });
 });
 
+describe('classifyTypeAnnotation for nested weak types', () => {
+  it.each([
+    ['property', '{ value: any }', AnnotationStatus.any],
+    ['unknown property', '{ value: unknown }', AnnotationStatus.unknown],
+    ['method parameter', '{ parse(value: any): string }', AnnotationStatus.any],
+    ['method return', '{ parse(value: string): unknown }', AnnotationStatus.unknown],
+    ['index signature parameter', '{ [key: any]: string }', AnnotationStatus.any],
+    ['index signature value', '{ [key: string]: unknown }', AnnotationStatus.unknown],
+    ['fully typed object', '{ value: string; parse(value: number): boolean; [key: string]: string }', AnnotationStatus.explicit],
+  ])('classifies an object type with a %s', (_name, annotation, expected) => {
+    const nodes = parseSource(`const value: ${annotation} = {} as ${annotation};`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(expected);
+  });
+
+  it.each([
+    ['any parameter', '(value: any) => string', AnnotationStatus.any],
+    ['unknown parameter', '(value: unknown) => string', AnnotationStatus.unknown],
+    ['any return', '(value: string) => any', AnnotationStatus.any],
+    ['unknown return', '(value: string) => unknown', AnnotationStatus.unknown],
+    ['fully typed function', '(value: string) => boolean', AnnotationStatus.explicit],
+  ])('classifies a function type with an %s', (_name, annotation, expected) => {
+    const nodes = parseSource(`const callback: ${annotation} = value => value as never;`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(expected);
+  });
+
+  it.each([
+    '{ first: unknown; second: any }',
+    '{ first: any; second: unknown }',
+    '(first: unknown, second: any) => unknown',
+    '(first: any, second: unknown) => unknown',
+  ])('gives any deterministic precedence within %s', annotation => {
+    const nodes = parseSource(`const value: ${annotation} = null as never;`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(AnnotationStatus.any);
+  });
+
+  it('preserves nested generic classification', () => {
+    const nodes = parseSource('const value: Promise<any> = Promise.resolve(1);');
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(AnnotationStatus.any);
+  });
+});
+
 describe('extractTypeName for edge cases', () => {
   const opts = { loc: true, range: true, jsx: false, tokens: false, comment: false };
 
