@@ -40,11 +40,14 @@ typegap --compare coverage.json
 
 | Issue | Description |
 |---|---|
-| 🔴 **any** | Parameters or return types explicitly typed as `any` |
-| 🟣 **unknown** | Parameters typed as `unknown` |
+| 🔴 **any** | Annotations containing `any`, including nested weak types |
+| 🟣 **unknown** | Annotations containing `unknown`, including nested weak types |
 | ⚠️ **implicit** | Missing type annotations — implicit `any` or missing return types |
 
-It also catches weak types hiding in generics like `Array<any>` and `Record<string, any>`.
+It also catches weak types nested in generics (`Array<any>`, `Record<string,
+any>`), object type properties, methods and index signatures, and function type
+parameters or returns. When one annotation contains both, `any` takes precedence
+over `unknown`.
 
 ## Output
 

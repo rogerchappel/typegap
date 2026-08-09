@@ -264,13 +264,34 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
     return classifyTypeAnnotation((typeNode as TSESTree.TSArrayType).elementType);
   }
 
-  // TSFunctionType → check return type
+  // TSFunctionType → check parameters and return type
   if (typeNode.type === 'TSFunctionType') {
     const fn = typeNode as TSESTree.TSFunctionType;
-    if (fn.returnType) {
-      return classifyTypeAnnotation(fn.returnType.typeAnnotation);
-    }
-    return AnnotationStatus.explicit;
+    return classifyFunctionTypeParts(fn.params, fn.returnType);
+  }
+
+  // TSTypeLiteral → check every annotated member component
+  if (typeNode.type === 'TSTypeLiteral') {
+    const statuses = (typeNode as TSESTree.TSTypeLiteral).members.map(member => {
+      if (member.type === 'TSPropertySignature') {
+        return member.typeAnnotation
+          ? classifyTypeAnnotation(member.typeAnnotation.typeAnnotation)
+          : AnnotationStatus.explicit;
+      }
+      if (member.type === 'TSMethodSignature') {
+        return classifyFunctionTypeParts(member.params, member.returnType);
+      }
+      if (member.type === 'TSIndexSignature') {
+        return combineWeakStatuses([
+          ...member.parameters.map(classifyParameterType),
+          member.typeAnnotation
+            ? classifyTypeAnnotation(member.typeAnnotation.typeAnnotation)
+            : AnnotationStatus.explicit,
+        ]);
+      }
+      return classifyFunctionTypeParts(member.params, member.returnType);
+    });
+    return combineWeakStatuses(statuses);
   }
 
   // TSTupleType
@@ -348,6 +369,43 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
 
   // TSTypeOperator, TSInferType, TSIndexedAccessType handled above
   // Everything else is explicit
+  return AnnotationStatus.explicit;
+}
+
+function classifyFunctionTypeParts(
+  params: TSESTree.Parameter[],
+  returnType: TSESTree.TSTypeAnnotation | undefined,
+): AnnotationStatus {
+  return combineWeakStatuses([
+    ...params.map(classifyParameterType),
+    returnType
+      ? classifyTypeAnnotation(returnType.typeAnnotation)
+      : AnnotationStatus.explicit,
+  ]);
+}
+
+function classifyParameterType(param: TSESTree.Parameter): AnnotationStatus {
+  if (param.type === 'TSParameterProperty') {
+    return classifyParameterType(param.parameter);
+  }
+  if (param.type === 'AssignmentPattern') {
+    return classifyParameterType(param.left as TSESTree.Parameter);
+  }
+  if (param.type === 'RestElement') {
+    if (param.typeAnnotation) {
+      return classifyTypeAnnotation(param.typeAnnotation.typeAnnotation);
+    }
+    return classifyParameterType(param.argument as TSESTree.Parameter);
+  }
+  return param.typeAnnotation
+    ? classifyTypeAnnotation(param.typeAnnotation.typeAnnotation)
+    : AnnotationStatus.explicit;
+}
+
+/** Prefer any over unknown regardless of the order in which nested types appear. */
+function combineWeakStatuses(statuses: AnnotationStatus[]): AnnotationStatus {
+  if (statuses.includes(AnnotationStatus.any)) return AnnotationStatus.any;
+  if (statuses.includes(AnnotationStatus.unknown)) return AnnotationStatus.unknown;
   return AnnotationStatus.explicit;
 }
 
