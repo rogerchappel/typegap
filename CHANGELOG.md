@@ -19,6 +19,11 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Changed
 
+- Replaced the unavailable npm-registry onboarding with the supported source
+  checkout, build, and local CLI installation workflow across the README badge,
+  Quick Start, CI example, programmatic usage, and release-readiness guidance.
+- Extended the package smoke check to exercise the documented source install,
+  installed CLI, and public API before publication.
 - Aligned template terminology, placeholder documentation, and current V1
   surface area across docs, templates, and workflows.
 - Expanded the optional docs-site template with clearer setup guidance and a

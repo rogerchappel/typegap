@@ -2,7 +2,7 @@
 
 > TypeScript type coverage auditor — **find the holes without compiling**
 
-[![npm version](https://img.shields.io/npm/v/typegap.svg)](https://www.npmjs.com/package/typegap)
+[![Distribution: source checkout](https://img.shields.io/badge/distribution-source%20checkout-blue.svg)](#installation-status)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -14,9 +14,15 @@ TypeScript is only as strong as its type annotations. `any` creeps in during rap
 
 ## Quick Start
 
+The package is not published to npm yet. Install the current version from a
+source checkout:
+
 ```bash
-# Install
-npm install -g typegap
+git clone https://github.com/rogerchappel/typegap.git
+cd typegap
+npm ci
+npm run build
+npm install --global .
 
 # Scan current directory
 typegap
@@ -34,6 +40,21 @@ typegap --min-coverage 90
 typegap --baseline coverage.json
 # ... later ...
 typegap --compare coverage.json
+```
+
+The global install points at the checkout, so rebuild after pulling changes.
+When the first npm release is available, `npm install --global typegap` will
+become the registry installation path; it is not supported today.
+
+### Programmatic usage
+
+Until registry publication, import the built entry point from the checkout:
+
+```js
+import { analyzeDirectory } from "./typegap/dist/index.js";
+
+const result = await analyzeDirectory("./src");
+console.log(result.coverage);
 ```
 
 ## What It Catches
@@ -97,10 +118,18 @@ TypeGap — Type Coverage Report
 
 ## CI Integration
 
+CI should also run from a source checkout until the package is published:
+
 ```yaml
 # .github/workflows/types-lint.yml
+- uses: actions/checkout@v6
+- uses: actions/setup-node@v4
+  with:
+    node-version: 22
+- run: npm ci
+- run: npm run build
 - name: Check type coverage
-  run: npx typegap --min-coverage 80
+  run: node dist/cli.js --min-coverage 80
 ```
 
 ## How It Works
@@ -172,6 +201,12 @@ The release gate covers:
 
 ## Release readiness
 
+### Installation status
+
+Typegap is currently available from its source checkout, not the npm registry.
+The commands in Quick Start are the supported installation workflow while the
+project prepares its first release.
+
 Run the release gate before tagging or publishing:
 
 ```sh
@@ -179,4 +214,7 @@ npm run release:check
 npm pack --dry-run
 ```
 
-The package smoke check prints the tarball contents so missing runtime files are caught before release.
+The package smoke check prints the tarball contents, installs the current
+checkout into an isolated npm prefix, invokes the installed CLI, and imports
+the public API. This catches missing runtime files and stale installation
+instructions before release.
