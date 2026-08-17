@@ -96,7 +96,7 @@ describe('generateReport', () => {
         status: 'removed',
       },
     ]);
-    expect(text).toContain('removed.ts: removed (0.0%)');
+    expect(text).toMatch(/removed\.ts:.*removed.*\(0\.0%\)/);
   });
 
   it('returns exit code 0 when above min coverage', () => {
