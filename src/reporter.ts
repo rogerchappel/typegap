@@ -103,7 +103,11 @@ export function compareWithBaseline(result: ProjectResult, baseline: Baseline, c
     }
 
     if (file.status === 'new') {
-      lines.push(`  ${file.file}: ${pc.yellow('new')} (${file.coverageCurrent.toFixed(1)}%)`);
+      lines.push(`  ${file.file}: ${pc.yellow('new')} (${file.coverageCurrent!.toFixed(1)}%)`);
+    }
+
+    if (file.status === 'removed') {
+      lines.push(`  ${file.file}: ${pc.yellow('removed')} (${file.coverageBefore!.toFixed(1)}%)`);
     }
   }
 
@@ -276,6 +280,8 @@ export function getBaselineComparison(
       continue;
     }
 
+    baselineMap.delete(filePath);
+
     const coverageDelta = round(f.coverage - prev.coverage);
     if (coverageDelta !== 0) {
       files.push({
@@ -286,6 +292,14 @@ export function getBaselineComparison(
         status: 'changed',
       });
     }
+  }
+
+  for (const [filePath, prev] of baselineMap) {
+    files.push({
+      file: filePath,
+      coverageBefore: prev.coverage,
+      status: 'removed',
+    });
   }
 
   return {

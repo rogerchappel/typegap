@@ -42,6 +42,11 @@ typegap --baseline coverage.json
 typegap --compare coverage.json
 ```
 
+Baseline comparisons report changed and new files, plus files that were present
+in the saved baseline but are absent from the current scan. Removed files retain
+their previous coverage in both text and JSON output, so deleting a low-coverage
+file cannot appear as an unexplained overall improvement.
+
 The global install points at the checkout, so rebuild after pulling changes.
 When the first npm release is available, `npm install --global typegap` will
 become the registry installation path; it is not supported today.
