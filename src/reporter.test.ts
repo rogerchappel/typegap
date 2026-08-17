@@ -73,6 +73,32 @@ describe('generateReport', () => {
     ]);
   });
 
+  it('reports a removed low-coverage file behind an overall improvement', () => {
+    const removedFile = makeResult().files[0];
+    removedFile.file = 'removed.ts';
+    removedFile.coverage = 0;
+    const keptFile = { ...makeResult().files[0], file: 'kept.ts', coverage: 100 };
+    const oldResult = makeResult({ files: [removedFile, keptFile], coverage: 50 });
+    saveBaseline(oldResult, BASELINE_FILE);
+
+    const newResult = makeResult({ files: [keptFile], coverage: 100 });
+    const json = JSON.parse(generateReport(newResult, {
+      format: 'json',
+      compareBaseline: BASELINE_FILE,
+    }).output);
+    const text = generateReport(newResult, { compareBaseline: BASELINE_FILE }).output;
+
+    expect(json.comparison.coverageDelta).toBe(50);
+    expect(json.comparison.files).toEqual([
+      {
+        file: 'removed.ts',
+        coverageBefore: 0,
+        status: 'removed',
+      },
+    ]);
+    expect(text).toContain('removed.ts: removed (0.0%)');
+  });
+
   it('returns exit code 0 when above min coverage', () => {
     const result = makeResult();
     const { exitCode } = generateReport(result, { minCoverage: 70 });

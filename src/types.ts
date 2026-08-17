@@ -92,8 +92,8 @@ export interface BaselineComparison {
   files: Array<{
     file: string;
     coverageBefore?: number;
-    coverageCurrent: number;
+    coverageCurrent?: number;
     coverageDelta?: number;
-    status: 'changed' | 'new';
+    status: 'changed' | 'new' | 'removed';
   }>;
 }
