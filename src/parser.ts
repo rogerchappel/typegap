@@ -65,6 +65,16 @@ function visit(node: TSESTree.Node, file: string, nodes: NodeInfo[], parent: TSE
     case 'CatchClause':
       handleCatchClause(node as TSESTree.CatchClause, file, nodes);
       break;
+
+    case 'TSInterfaceDeclaration':
+      handleObjectMembers((node as TSESTree.TSInterfaceDeclaration).body.body, file, nodes);
+      break;
+
+    case 'TSTypeAliasDeclaration': {
+      const annotation = (node as TSESTree.TSTypeAliasDeclaration).typeAnnotation;
+      if (annotation.type === 'TSTypeLiteral') handleObjectMembers(annotation.members, file, nodes);
+      break;
+    }
   }
 
   // Recurse into children
@@ -185,6 +195,43 @@ function handleVariableDeclaration(
   }
 }
 
+function handleObjectMembers(
+  members: TSESTree.TypeElement[],
+  file: string,
+  nodes: NodeInfo[],
+): void {
+  for (const member of members) {
+    if (member.type === 'TSPropertySignature' && member.typeAnnotation) {
+      nodes.push(makeNode(
+        file,
+        member.loc?.start.line ?? 0,
+        'property',
+        memberName(member.key),
+        classifyTypeAnnotation(member.typeAnnotation.typeAnnotation),
+      ));
+    } else if (member.type === 'TSMethodSignature') {
+      const name = memberName(member.key);
+      const status = member.returnType
+        ? classifyTypeAnnotation(member.returnType.typeAnnotation)
+        : AnnotationStatus.implicit;
+      nodes.push(makeNode(file, member.loc?.start.line ?? 0, 'return', `${name}() return`, status));
+      handleParams(member.params, file, nodes);
+    } else if (member.type === 'TSIndexSignature') {
+      const status = member.typeAnnotation
+        ? classifyTypeAnnotation(member.typeAnnotation.typeAnnotation)
+        : AnnotationStatus.implicit;
+      nodes.push(makeNode(file, member.loc?.start.line ?? 0, 'return', '[index] value', status));
+      handleParams(member.parameters, file, nodes);
+    }
+  }
+}
+
+function memberName(key: TSESTree.PropertyName): string {
+  if (key.type === 'Identifier') return key.name;
+  if (key.type === 'Literal') return String(key.value);
+  return '[computed]';
+}
+
 /* ------------------------------------------------------------------ */
 /* Helpers                                                            */
 /* ------------------------------------------------------------------ */
@@ -241,10 +288,7 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
   if (typeNode.type === 'TSTypeReference') {
     const ref = typeNode as TSESTree.TSTypeReference;
     if (ref.typeArguments) {
-      for (const p of ref.typeArguments.params) {
-        const childStatus = classifyTypeAnnotation(p);
-        if (childStatus !== AnnotationStatus.explicit) return childStatus;
-      }
+      return combineWeakStatuses(ref.typeArguments.params.map(classifyTypeAnnotation));
     }
     return AnnotationStatus.explicit;
   }
@@ -252,11 +296,7 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
   // TSUnionType / TSIntersectionType
   if (typeNode.type === 'TSUnionType' || typeNode.type === 'TSIntersectionType') {
     const types = (typeNode as TSESTree.TSUnionType | TSESTree.TSIntersectionType).types;
-    for (const t of types) {
-      const s = classifyTypeAnnotation(t);
-      if (s !== AnnotationStatus.explicit) return s;
-    }
-    return AnnotationStatus.explicit;
+    return combineWeakStatuses(types.map(classifyTypeAnnotation));
   }
 
   // TSArrayType → check elementType

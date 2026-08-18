@@ -178,6 +178,52 @@ describe('classifyTypeAnnotation for nested weak types', () => {
   });
 });
 
+describe('object member annotations', () => {
+  it('reports interface properties, methods, and index signatures', () => {
+    const nodes = parseSource(`interface Store {
+  value: unknown;
+  parse(input: any): unknown;
+  [key: string]: any;
+}`);
+
+    expect(nodes.map(({ kind, name, status }) => ({ kind, name, status }))).toEqual([
+      { kind: 'property', name: 'value', status: AnnotationStatus.unknown },
+      { kind: 'return', name: 'parse() return', status: AnnotationStatus.unknown },
+      { kind: 'param', name: 'input', status: AnnotationStatus.any },
+      { kind: 'return', name: '[index] value', status: AnnotationStatus.any },
+      { kind: 'param', name: 'key', status: AnnotationStatus.explicit },
+    ]);
+  });
+
+  it('reports members of type literals without changing variable findings', () => {
+    const aliasNodes = parseSource(`type Store = {
+  value: any;
+  parse(input: unknown): any;
+  [key: any]: unknown;
+};`);
+    expect(aliasNodes.map(node => node.status)).toEqual([
+      AnnotationStatus.any,
+      AnnotationStatus.any,
+      AnnotationStatus.unknown,
+      AnnotationStatus.unknown,
+      AnnotationStatus.any,
+    ]);
+
+    const variableNodes = parseSource('const value: { item: any } = { item: 1 };');
+    expect(variableNodes).toHaveLength(1);
+    expect(variableNodes[0]).toMatchObject({ kind: 'var', name: 'value', status: AnnotationStatus.any });
+  });
+
+  it.each([
+    ['unknown | any', AnnotationStatus.any],
+    ['any | unknown', AnnotationStatus.any],
+    ['Promise<unknown | any>', AnnotationStatus.any],
+  ])('gives any precedence for a property annotation containing %s', (annotation, status) => {
+    const [node] = parseSource(`interface Value { item: ${annotation} }`);
+    expect(node).toMatchObject({ kind: 'property', name: 'item', status });
+  });
+});
+
 describe('extractTypeName for edge cases', () => {
   const opts = { loc: true, range: true, jsx: false, tokens: false, comment: false };
 

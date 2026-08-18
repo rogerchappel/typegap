@@ -71,9 +71,11 @@ console.log(result.coverage);
 | ⚠️ **implicit** | Missing type annotations — implicit `any` or missing return types |
 
 It also catches weak types nested in generics (`Array<any>`, `Record<string,
-any>`), object type properties, methods and index signatures, and function type
-parameters or returns. When one annotation contains both, `any` takes precedence
-over `unknown`.
+any>`). Interface declarations and direct object type aliases report their
+properties, method parameters and returns, and index signatures individually.
+Function type parameters and returns nested in another annotation contribute to
+that enclosing finding. When one annotation contains both, `any` takes
+precedence over `unknown`.
 
 ## Output
 
