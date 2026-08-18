@@ -30,7 +30,7 @@ export interface NodeInfo {
   file: string;
   /** 1-based line number */
   line: number;
-  /** Node kind hint (param, return, var, binding-param, generic-arg) */
+  /** Node kind hint (param, return, var, property, binding-param, generic-arg) */
   kind: string;
   /** The name or description of the node */
   name: string;
