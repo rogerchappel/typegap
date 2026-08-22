@@ -3,7 +3,7 @@ import { generateReport, saveBaseline, loadBaseline, compareWithBaseline, getBas
 import { buildProjectResult } from './analyzer.js';
 import { AnnotationStatus } from './types.js';
 import type { FileResult } from './types.js';
-import { rmSync, existsSync } from 'node:fs';
+import { rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const BASELINE_FILE = 'fixtures/baseline-test.json';
 
@@ -162,6 +162,23 @@ describe('saveBaseline / loadBaseline', () => {
 
   it('throws if baseline file does not exist', () => {
     expect(() => loadBaseline('nonexistent.json')).toThrow();
+  });
+
+  it('rejects malformed and unsupported baselines with stable errors', () => {
+    writeFileSync(BASELINE_FILE, '{not json\n');
+    expect(() => loadBaseline(BASELINE_FILE)).toThrow('Invalid baseline: malformed JSON');
+
+    writeFileSync(BASELINE_FILE, JSON.stringify({ version: 2 }));
+    expect(() => loadBaseline(BASELINE_FILE)).toThrow('Invalid baseline: unsupported version 2; expected version 1');
+  });
+
+  it('rejects invalid version-1 baseline fields', () => {
+    saveBaseline(makeResult(), BASELINE_FILE);
+    const baseline = JSON.parse(readFileSync(BASELINE_FILE, 'utf8'));
+    baseline.files[0].coverage = '75';
+    writeFileSync(BASELINE_FILE, JSON.stringify(baseline));
+
+    expect(() => loadBaseline(BASELINE_FILE)).toThrow('Invalid baseline: files[0].coverage must be a finite number');
   });
 
   it('includes timestamp in baseline', () => {
