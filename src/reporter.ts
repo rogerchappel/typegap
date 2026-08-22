@@ -75,7 +75,52 @@ export function loadBaseline(filePath: string): Baseline {
   if (!existsSync(filePath)) {
     throw new Error(`Baseline file not found: ${filePath}`);
   }
-  return JSON.parse(readFileSync(filePath, 'utf-8')) as Baseline;
+  let value: unknown;
+  try {
+    value = JSON.parse(readFileSync(filePath, 'utf-8'));
+  } catch {
+    throw new Error('Invalid baseline: malformed JSON');
+  }
+  return validateBaseline(value);
+}
+
+function validateBaseline(value: unknown): Baseline {
+  if (!isRecord(value)) throw new Error('Invalid baseline: expected a JSON object');
+  if (value.version !== 1) {
+    const version = value.version === undefined ? 'missing' : JSON.stringify(value.version);
+    throw new Error(`Invalid baseline: unsupported version ${version}; expected version 1`);
+  }
+
+  for (const field of ['total', 'annotated', 'coverage', 'anyCount', 'unknownCount', 'implicitCount'] as const) {
+    requireFiniteNumber(value, field, field);
+  }
+  if (typeof value.timestamp !== 'string' || !Number.isFinite(Date.parse(value.timestamp))) {
+    throw new Error('Invalid baseline: timestamp must be a valid date string');
+  }
+  if (!Array.isArray(value.files)) throw new Error('Invalid baseline: files must be an array');
+
+  value.files.forEach((file, index) => {
+    const prefix = `files[${index}]`;
+    if (!isRecord(file)) throw new Error(`Invalid baseline: ${prefix} must be an object`);
+    if (typeof file.file !== 'string' || file.file.length === 0) {
+      throw new Error(`Invalid baseline: ${prefix}.file must be a non-empty string`);
+    }
+    for (const field of ['total', 'annotated', 'coverage'] as const) {
+      requireFiniteNumber(file, field, `${prefix}.${field}`);
+    }
+  });
+
+  return value as unknown as Baseline;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function requireFiniteNumber(value: Record<string, unknown>, field: string, label: string): void {
+  if (typeof value[field] !== 'number' || !Number.isFinite(value[field])) {
+    throw new Error(`Invalid baseline: ${label} must be a finite number`);
+  }
 }
 
 /** Compare current result against saved baseline */
