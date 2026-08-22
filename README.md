@@ -123,6 +123,11 @@ TypeGap — Type Coverage Report
 | `--min-coverage <n>` | Exit non-zero if coverage drops below `n`% |
 | `--pattern <pattern>` | Custom glob pattern for target files |
 
+Baselines are versioned JSON documents. TypeGap currently accepts version `1`, including the
+numeric project totals and an array of file entries with a non-empty `file` path plus numeric
+`total`, `annotated`, and `coverage` fields. Malformed JSON, unsupported versions, and invalid
+fields are rejected with a concise error; `--format json` returns that error as JSON.
+
 ## CI Integration
 
 CI should also run from a source checkout until the package is published:

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { execSync, spawnSync } from 'node:child_process';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 describe('CLI integration', () => {
   const cli = 'npx tsx src/cli.ts';
@@ -72,5 +72,25 @@ describe('CLI integration', () => {
     expect(() => {
       execSync(`${cli} fixtures/fully-typed --compare fixtures/no-baseline.json`, { encoding: 'utf-8' });
     }).toThrow();
+  });
+
+  it.each(['text', 'json'])('reports invalid baselines without a stack trace in %s mode', (format) => {
+    const baseline = 'fixtures/invalid-baseline-test.json';
+    writeFileSync(baseline, '{not json\n');
+    try {
+      const result = spawnSync('npx', ['tsx', 'src/cli.ts', 'fixtures/fully-typed', '--compare', baseline, '--format', format], {
+        encoding: 'utf8',
+      });
+      expect(result.status).toBe(1);
+      const output = `${result.stdout}${result.stderr}`;
+      expect(output).toContain('Invalid baseline: malformed JSON');
+      expect(output).not.toContain('SyntaxError');
+      expect(output).not.toContain('at loadBaseline');
+      if (format === 'json') {
+        expect(JSON.parse(result.stdout)).toEqual({ error: 'Invalid baseline: malformed JSON' });
+      }
+    } finally {
+      rmSync(baseline, { force: true });
+    }
   });
 });

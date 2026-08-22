@@ -63,14 +63,24 @@ program
       pattern: opts.pattern as string | undefined,
     });
 
-    const { output, exitCode } = generateReport(result, {
-      format,
-      detail: (opts.detail as boolean) ?? false,
-      saveBaseline: opts.baseline as string | undefined,
-      compareBaseline: opts.compare ? resolve(opts.compare as string) : undefined,
-      minCoverage,
-      cwd: process.cwd(),
-    });
+    let report;
+    try {
+      report = generateReport(result, {
+        format,
+        detail: (opts.detail as boolean) ?? false,
+        saveBaseline: opts.baseline as string | undefined,
+        compareBaseline: opts.compare ? resolve(opts.compare as string) : undefined,
+        minCoverage,
+        cwd: process.cwd(),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to load baseline';
+      if (format === 'json') console.log(JSON.stringify({ error: message }));
+      else console.error(`Error: ${message}`);
+      process.exit(1);
+    }
+
+    const { output, exitCode } = report;
 
     console.log(output);
 
