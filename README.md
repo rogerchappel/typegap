@@ -212,9 +212,8 @@ The release gate covers:
 - `npm run build` - tsc && chmod +x dist/cli.js
 - `npm test` - vitest run --coverage
 - `npm run smoke` - npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text
-- `npm run validate` - bash scripts/validate.sh
+- `npm run validate` - build the CLI, assert the fully typed fixture reports 100% coverage and zero implicit types, and verify invalid output is rejected
 - `npm run package:smoke` - npm run build && node scripts/package-smoke.mjs
-- `npm run release:check` - full and production audits, typecheck, lint, tests, smoke checks, and package smoke check
 
 ## Release readiness
 
