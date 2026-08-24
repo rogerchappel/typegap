@@ -34,7 +34,7 @@
     "audit:all": "npm audit",
     "audit:prod": "npm audit --omit=dev",
     "prepublishOnly": "npm run build",
-    "release:check": "npm run audit:all && npm run audit:prod && npm run check && npm run lint && npm test && npm run smoke && npm run package:smoke",
+    "release:check": "npm run audit:all && npm run audit:prod && npm run check && npm run lint && npm test && npm run smoke && npm run validate && npm run package:smoke",
     "package:smoke": "npm run build && node scripts/package-smoke.mjs",
     "smoke": "npm run build && node dist/cli.js --help && node dist/cli.js fixtures --format text"
   },
