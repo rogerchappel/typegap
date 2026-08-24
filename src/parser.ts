@@ -66,6 +66,10 @@ function visit(node: TSESTree.Node, file: string, nodes: NodeInfo[], parent: TSE
       handleCatchClause(node as TSESTree.CatchClause, file, nodes);
       break;
 
+    case 'PropertyDefinition':
+      handleClassField(node as TSESTree.PropertyDefinition, file, nodes);
+      break;
+
     case 'TSInterfaceDeclaration':
       handleObjectMembers((node as TSESTree.TSInterfaceDeclaration).body.body, file, nodes);
       break;
@@ -195,6 +199,22 @@ function handleVariableDeclaration(
   }
 }
 
+function handleClassField(
+  node: TSESTree.PropertyDefinition,
+  file: string,
+  nodes: NodeInfo[],
+): void {
+  if (!node.typeAnnotation) return;
+
+  nodes.push(makeNode(
+    file,
+    node.loc?.start.line ?? 0,
+    'property',
+    classFieldName(node.key),
+    classifyTypeAnnotation(node.typeAnnotation.typeAnnotation),
+  ));
+}
+
 function handleObjectMembers(
   members: TSESTree.TypeElement[],
   file: string,
@@ -230,6 +250,11 @@ function memberName(key: TSESTree.PropertyName): string {
   if (key.type === 'Identifier') return key.name;
   if (key.type === 'Literal') return String(key.value);
   return '[computed]';
+}
+
+function classFieldName(key: TSESTree.PropertyDefinition['key']): string {
+  if (key.type === 'PrivateIdentifier') return `#${key.name}`;
+  return memberName(key);
 }
 
 /* ------------------------------------------------------------------ */

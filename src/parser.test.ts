@@ -224,6 +224,37 @@ describe('object member annotations', () => {
   });
 });
 
+describe('class field annotations', () => {
+  it('reports supported class field forms without double-counting method bodies', () => {
+    const nodes = parseSource(`class Service {
+  payload: any;
+  public response?: Promise<unknown>;
+  private cache: Map<string, any> = new Map();
+  protected readonly label: string = 'service';
+  static count: number = 0;
+  declare config: { value: unknown };
+  #token: string = 'token';
+  run(input: unknown): any { return input; }
+}`);
+
+    expect(nodes.map(({ kind, name, status }) => ({ kind, name, status }))).toEqual([
+      { kind: 'property', name: 'payload', status: AnnotationStatus.any },
+      { kind: 'property', name: 'response', status: AnnotationStatus.unknown },
+      { kind: 'property', name: 'cache', status: AnnotationStatus.any },
+      { kind: 'property', name: 'label', status: AnnotationStatus.explicit },
+      { kind: 'property', name: 'count', status: AnnotationStatus.explicit },
+      { kind: 'property', name: 'config', status: AnnotationStatus.unknown },
+      { kind: 'property', name: '#token', status: AnnotationStatus.explicit },
+      { kind: 'return', name: '(anonymous)() return', status: AnnotationStatus.any },
+      { kind: 'param', name: 'input', status: AnnotationStatus.unknown },
+    ]);
+  });
+
+  it('ignores inferred-only class fields consistently with variables', () => {
+    expect(parseSource('class Service { payload = 1; optional?; }')).toEqual([]);
+  });
+});
+
 describe('extractTypeName for edge cases', () => {
   const opts = { loc: true, range: true, jsx: false, tokens: false, comment: false };
 

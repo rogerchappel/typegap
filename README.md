@@ -71,7 +71,9 @@ console.log(result.coverage);
 | ⚠️ **implicit** | Missing type annotations — implicit `any` or missing return types |
 
 It also catches weak types nested in generics (`Array<any>`, `Record<string,
-any>`). Interface declarations and direct object type aliases report their
+any>`). Class fields with explicit annotations report one property finding,
+including public, private, protected, static, readonly, declare, and optional
+fields. Interface declarations and direct object type aliases report their
 properties, method parameters and returns, and index signatures individually.
 Function type parameters and returns nested in another annotation contribute to
 that enclosing finding. When one annotation contains both, `any` takes
@@ -148,7 +150,7 @@ CI should also run from a source checkout until the package is published:
 
 1. Finds all `.ts` / `.tsx` files using glob
 2. Parses each file with `@typescript-eslint/typescript-estree`
-3. Walks the AST for functions, arrows, parameters, variables
+3. Walks the AST for functions, arrows, parameters, variables, and class fields
 4. Classifies each annotatable node: explicit, `any`, `unknown`, or implicit
 5. Calculates coverage as `(total - implicit) / total * 100`
 
@@ -157,9 +159,12 @@ CI should also run from a source checkout until the package is published:
 - Function / arrow return types
 - Function / arrow parameters (including destructured and rest params)
 - Variable declarations with explicit type annotations
+- Class fields with explicit type annotations (including private and modified fields)
 - Catch clause parameters
 
-Constructor methods are excluded (they cannot have return types). Inferred-only variables (e.g., `const x = 5`) are not flagged — only explicit annotation sites are audited.
+Constructor methods are excluded (they cannot have return types). Inferred-only
+variables and class fields (for example, `const x = 5` or `value = 5`) are not
+flagged — only explicit annotation sites are audited.
 
 ## Contributing
 
