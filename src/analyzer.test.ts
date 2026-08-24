@@ -121,6 +121,14 @@ describe('analyzeDirectory', () => {
     const result = await analyzeDirectory('fixtures/any-usage');
     expect(result.files.length).toBeGreaterThan(0);
     expect(result.anyCount).toBeGreaterThan(0);
+    expect(result.files.find(file => file.file.endsWith('class-fields.ts'))).toMatchObject({
+      total: 4,
+      annotated: 4,
+      anyCount: 2,
+      unknownCount: 1,
+      implicitCount: 0,
+      coverage: 100,
+    });
   });
 
   it('analyzes missing-types fixture with implicit issues', async () => {

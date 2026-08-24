@@ -27,6 +27,13 @@ describe('CLI integration', () => {
     const json = JSON.parse(output);
     expect(json.coverage).toBe(100); // any counts as annotated (has a type)
     expect(json.anyCount).toBeGreaterThan(0);
+    expect(json.files.find((file: { file: string }) => file.file.endsWith('class-fields.ts'))).toMatchObject({
+      total: 4,
+      annotated: 4,
+      anyCount: 2,
+      unknownCount: 1,
+      coverage: 100,
+    });
   });
 
   it('shows detail mode', () => {
