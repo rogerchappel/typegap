@@ -11,6 +11,7 @@ import { existsSync } from 'node:fs';
 import { analyzeDirectory } from './analyzer.js';
 import { generateReport, saveBaseline } from './reporter.js';
 import { version } from './version.js';
+import { parseMinCoverage } from './min-coverage.js';
 
 const program = new Command();
 
@@ -24,7 +25,7 @@ program
   .option('--detail', 'show per-file type annotation details')
   .option('--baseline <file>', 'save coverage baseline to JSON file')
   .option('--compare <file>', 'compare against a previously saved baseline')
-  .option('--min-coverage <n>', 'minimum coverage percentage (exit 1 if below)', parseFloat)
+  .option('--min-coverage <n>', 'minimum coverage percentage (exit 1 if below)', parseMinCoverage)
   .option('--pattern <pattern>', 'glob pattern for target files', '**/*.{ts,tsx}')
   .action(async (directory: string, opts: Record<string, unknown>) => {
     const dir = resolve(directory);
