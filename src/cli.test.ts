@@ -75,6 +75,23 @@ describe('CLI integration', () => {
     }).toThrow();
   });
 
+  it.each(['80junk', '.5oops', '0x10'])('rejects malformed minimum coverage %s', (value) => {
+    const result = spawnSync('npx', ['tsx', 'src/cli.ts', 'fixtures/fully-typed', '--min-coverage', value], {
+      encoding: 'utf8',
+    });
+    expect(result.status).toBe(1);
+    expect(`${result.stdout}${result.stderr}`).toContain(
+      'Error: --min-coverage must be a number between 0 and 100.',
+    );
+  });
+
+  it.each(['0', '.5', '80.25', '100'])('accepts decimal minimum coverage %s', (value) => {
+    const result = spawnSync('npx', ['tsx', 'src/cli.ts', 'fixtures/fully-typed', '--min-coverage', value], {
+      encoding: 'utf8',
+    });
+    expect(result.status).toBe(0);
+  });
+
   it('errors on missing compare baseline', () => {
     expect(() => {
       execSync(`${cli} fixtures/fully-typed --compare fixtures/no-baseline.json`, { encoding: 'utf-8' });
