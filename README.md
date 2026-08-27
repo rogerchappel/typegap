@@ -122,7 +122,7 @@ TypeGap — Type Coverage Report
 | `--detail` | Show per-file type annotation details |
 | `--baseline <file>` | Save coverage baseline to a JSON file |
 | `--compare <file>` | Compare against a saved baseline |
-| `--min-coverage <n>` | Exit non-zero if coverage drops below `n`% |
+| `--min-coverage <n>` | Exit non-zero if coverage drops below decimal `n`% (0–100) |
 | `--pattern <pattern>` | Custom glob pattern for target files |
 
 Baselines are versioned JSON documents. TypeGap currently accepts version `1`, including the
