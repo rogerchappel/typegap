@@ -87,7 +87,9 @@ program
 
     if (opts.baseline) {
       saveBaseline(result, resolve(opts.baseline as string), process.cwd());
-      console.log(`Baseline saved to ${opts.baseline}`);
+      const confirmation = `Baseline saved to ${opts.baseline}`;
+      if (format === 'json') console.error(confirmation);
+      else console.log(confirmation);
     }
 
     process.exit(exitCode);
