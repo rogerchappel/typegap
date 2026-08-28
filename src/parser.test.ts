@@ -139,6 +139,16 @@ describe('classifyTypeAnnotation for TSInferType', () => {
 
 describe('classifyTypeAnnotation for nested weak types', () => {
   it.each([
+    ['keyof any', AnnotationStatus.any],
+    ['keyof unknown', AnnotationStatus.unknown],
+    ['readonly any[]', AnnotationStatus.any],
+    ['readonly unknown[]', AnnotationStatus.unknown],
+  ])('classifies a type-operator wrapped %s', (annotation, expected) => {
+    const nodes = parseSource(`const value: ${annotation} = null as never;`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(expected);
+  });
+
+  it.each([
     ['property', '{ value: any }', AnnotationStatus.any],
     ['unknown property', '{ value: unknown }', AnnotationStatus.unknown],
     ['method parameter', '{ parse(value: any): string }', AnnotationStatus.any],
