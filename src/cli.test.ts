@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { execSync, spawnSync } from 'node:child_process';
-import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 describe('CLI integration', () => {
   const cli = 'npx tsx src/cli.ts';
@@ -34,6 +36,24 @@ describe('CLI integration', () => {
       unknownCount: 1,
       coverage: 100,
     });
+  });
+
+  it('keeps JSON output parseable when saving a baseline', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'typegap-baseline-'));
+    const baseline = join(directory, 'coverage.json');
+    try {
+      const result = spawnSync('npx', [
+        'tsx', 'src/cli.ts', 'fixtures/any-usage', '--format', 'json', '--baseline', baseline,
+      ], { encoding: 'utf8' });
+
+      expect(result.status).toBe(0);
+      const report = JSON.parse(result.stdout) as { total: number; coverage: number };
+      const saved = JSON.parse(readFileSync(baseline, 'utf8')) as { total: number; coverage: number };
+      expect(saved).toMatchObject({ total: report.total, coverage: report.coverage });
+      expect(result.stderr).toContain(`Baseline saved to ${baseline}`);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it('shows detail mode', () => {
