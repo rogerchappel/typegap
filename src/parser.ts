@@ -426,13 +426,21 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
     return classifyTypeAnnotation(rt.typeAnnotation);
   }
 
+  // TSTypeOperator
+  if (typeNode.type === 'TSTypeOperator') {
+    const operator = typeNode as TSESTree.TSTypeOperator;
+    return operator.typeAnnotation
+      ? classifyTypeAnnotation(operator.typeAnnotation)
+      : AnnotationStatus.explicit;
+  }
+
   // TSNamedTupleMember
   if (typeNode.type === 'TSNamedTupleMember') {
     const ntm = typeNode as TSESTree.TSNamedTupleMember;
     return classifyTypeAnnotation(ntm.elementType);
   }
 
-  // TSTypeOperator, TSInferType, TSIndexedAccessType handled above
+  // TSInferType and TSIndexedAccessType are handled above
   // Everything else is explicit
   return AnnotationStatus.explicit;
 }
