@@ -28,7 +28,7 @@
     "check": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write src",
-    "validate": "bash scripts/validate.sh",
+    "validate": "bash scripts/validate.sh && node scripts/validate-task-docs.mjs",
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "audit:all": "npm audit",
