@@ -1,6 +1,6 @@
 # TypeGap PRD
 
-Status: in-progress
+Status: MVP implemented; npm publication remains pending
 
 ## Summary
 
