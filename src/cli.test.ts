@@ -137,4 +137,52 @@ describe('CLI integration', () => {
       rmSync(baseline, { force: true });
     }
   });
+
+  it.each(['text', 'json'])('reports analysis failures without a stack trace in %s mode', (format) => {
+    const directory = mkdtempSync(join(tmpdir(), 'typegap-invalid-source-'));
+    writeFileSync(join(directory, 'broken.ts'), 'const value: = 1;\n');
+    try {
+      const result = spawnSync('npx', ['tsx', 'src/cli.ts', directory, '--format', format], {
+        encoding: 'utf8',
+      });
+      expect(result.status).toBe(1);
+      const output = `${result.stdout}${result.stderr}`;
+      expect(output).not.toContain('TSError');
+      expect(output).not.toContain('at analyzeDirectory');
+      if (format === 'json') {
+        expect(JSON.parse(result.stdout)).toHaveProperty('error');
+        expect(result.stderr).toBe('');
+      } else {
+        expect(result.stdout).toBe('');
+        expect(result.stderr).toMatch(/^Error: .+\n$/);
+      }
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it.each(['text', 'json'])('reports baseline save failures before success output in %s mode', (format) => {
+    const directory = mkdtempSync(join(tmpdir(), 'typegap-missing-baseline-parent-'));
+    const baseline = join(directory, 'missing', 'coverage.json');
+    try {
+      const result = spawnSync('npx', [
+        'tsx', 'src/cli.ts', 'fixtures/fully-typed', '--format', format, '--baseline', baseline,
+      ], { encoding: 'utf8' });
+      expect(result.status).toBe(1);
+      const output = `${result.stdout}${result.stderr}`;
+      expect(output).not.toContain('Coverage Report');
+      expect(output).not.toContain('"coverage"');
+      expect(output).not.toContain('Baseline saved');
+      expect(output).not.toContain('at saveBaseline');
+      if (format === 'json') {
+        expect(JSON.parse(result.stdout)).toHaveProperty('error');
+        expect(result.stderr).toBe('');
+      } else {
+        expect(result.stdout).toBe('');
+        expect(result.stderr).toMatch(/^Error: .+\n$/);
+      }
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
 });
