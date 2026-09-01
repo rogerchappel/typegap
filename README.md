@@ -129,6 +129,9 @@ Baselines are versioned JSON documents. TypeGap currently accepts version `1`, i
 numeric project totals and an array of file entries with a non-empty `file` path plus numeric
 `total`, `annotated`, and `coverage` fields. Malformed JSON, unsupported versions, and invalid
 fields are rejected with a concise error; `--format json` returns that error as JSON.
+The same failure-output contract applies when source analysis or baseline saving fails: text mode
+writes one concise error to stderr, while JSON mode writes one parseable `{ "error": "..." }`
+object to stdout. A baseline save failure is reported before any coverage report or success message.
 
 ## CI Integration
 

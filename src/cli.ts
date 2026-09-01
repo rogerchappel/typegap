@@ -59,14 +59,12 @@ program
       ? (opts.ignore as string).split(',').map((s: string) => s.trim())
       : [];
 
-    const result = await analyzeDirectory(dir, {
-      ignore,
-      pattern: opts.pattern as string | undefined,
-    });
-
-    let report;
     try {
-      report = generateReport(result, {
+      const result = await analyzeDirectory(dir, {
+        ignore,
+        pattern: opts.pattern as string | undefined,
+      });
+      const report = generateReport(result, {
         format,
         detail: (opts.detail as boolean) ?? false,
         saveBaseline: opts.baseline as string | undefined,
@@ -74,25 +72,26 @@ program
         minCoverage,
         cwd: process.cwd(),
       });
+
+      if (opts.baseline) {
+        saveBaseline(result, resolve(opts.baseline as string), process.cwd());
+      }
+
+      console.log(report.output);
+
+      if (opts.baseline) {
+        const confirmation = `Baseline saved to ${opts.baseline}`;
+        if (format === 'json') console.error(confirmation);
+        else console.log(confirmation);
+      }
+
+      process.exit(report.exitCode);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to load baseline';
+      const message = error instanceof Error ? error.message : 'Unable to process project';
       if (format === 'json') console.log(JSON.stringify({ error: message }));
       else console.error(`Error: ${message}`);
       process.exit(1);
     }
-
-    const { output, exitCode } = report;
-
-    console.log(output);
-
-    if (opts.baseline) {
-      saveBaseline(result, resolve(opts.baseline as string), process.cwd());
-      const confirmation = `Baseline saved to ${opts.baseline}`;
-      if (format === 'json') console.error(confirmation);
-      else console.log(confirmation);
-    }
-
-    process.exit(exitCode);
   });
 
 program.parse();
