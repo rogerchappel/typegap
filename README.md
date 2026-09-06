@@ -169,6 +169,11 @@ Constructor methods are excluded (they cannot have return types). Inferred-only
 variables and class fields (for example, `const x = 5` or `value = 5`) are not
 flagged — only explicit annotation sites are audited.
 
+Nested `any` and `unknown` are propagated through supported TypeScript type
+annotations, including type predicates and mapped-type key constraints,
+remapped keys, and values. When both occur in one annotation, `any` takes
+precedence.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and development guidelines.
