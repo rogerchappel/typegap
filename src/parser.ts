@@ -389,11 +389,22 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
     return AnnotationStatus.explicit;
   }
 
-  // TSMappedType
+  // TSTypePredicate — check the asserted type (`value is T` / `asserts value is T`)
+  if (typeNode.type === 'TSTypePredicate') {
+    const predicate = typeNode as TSESTree.TSTypePredicate;
+    return predicate.typeAnnotation
+      ? classifyTypeAnnotation(predicate.typeAnnotation.typeAnnotation)
+      : AnnotationStatus.explicit;
+  }
+
+  // TSMappedType — inspect the key constraint, remapped key, and value
   if (typeNode.type === 'TSMappedType') {
     const mt = typeNode as TSESTree.TSMappedType;
-    if (mt.typeAnnotation) return classifyTypeAnnotation(mt.typeAnnotation);
-    return AnnotationStatus.explicit;
+    return combineWeakStatuses([
+      classifyTypeAnnotation(mt.constraint),
+      mt.nameType ? classifyTypeAnnotation(mt.nameType) : AnnotationStatus.explicit,
+      mt.typeAnnotation ? classifyTypeAnnotation(mt.typeAnnotation) : AnnotationStatus.explicit,
+    ]);
   }
 
   // TSIndexedAccessType
