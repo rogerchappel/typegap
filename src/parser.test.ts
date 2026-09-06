@@ -186,6 +186,29 @@ describe('classifyTypeAnnotation for nested weak types', () => {
     const nodes = parseSource('const value: Promise<any> = Promise.resolve(1);');
     expect(nodes.find(node => node.kind === 'var')?.status).toBe(AnnotationStatus.any);
   });
+
+  it.each([
+    ['value is any', AnnotationStatus.any],
+    ['value is unknown', AnnotationStatus.unknown],
+    ['asserts value is any', AnnotationStatus.any],
+    ['value is string', AnnotationStatus.explicit],
+    ['asserts value', AnnotationStatus.explicit],
+  ])('classifies a type predicate containing %s', (predicate, expected) => {
+    const nodes = parseSource(`function check(value: object): ${predicate} { return true; }`);
+    expect(nodes.find(node => node.kind === 'return')?.status).toBe(expected);
+  });
+
+  it.each([
+    ['constraint', '{ [K in keyof any]: string }', AnnotationStatus.any],
+    ['unknown constraint', '{ [K in keyof unknown]: string }', AnnotationStatus.unknown],
+    ['remapped key', '{ [K in string as any]: number }', AnnotationStatus.any],
+    ['value', '{ [K in string]: unknown }', AnnotationStatus.unknown],
+    ['any precedence', '{ [K in keyof unknown]: any }', AnnotationStatus.any],
+    ['fully typed mapped type', '{ [K in "name" | "id"]: string }', AnnotationStatus.explicit],
+  ])('classifies a mapped type %s', (_part, annotation, expected) => {
+    const nodes = parseSource(`const mapped: ${annotation} = {} as never;`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(expected);
+  });
 });
 
 describe('object member annotations', () => {
