@@ -385,8 +385,7 @@ export function classifyTypeAnnotation(typeNode: TSESTree.TypeNode): AnnotationS
   // TSConstructorType
   if (typeNode.type === 'TSConstructorType') {
     const ct = typeNode as TSESTree.TSConstructorType;
-    if (ct.returnType) return classifyTypeAnnotation(ct.returnType.typeAnnotation);
-    return AnnotationStatus.explicit;
+    return classifyFunctionTypeParts(ct.params, ct.returnType);
   }
 
   // TSTypePredicate — check the asserted type (`value is T` / `asserts value is T`)
