@@ -75,9 +75,9 @@ any>`). Class fields with explicit annotations report one property finding,
 including public, private, protected, static, readonly, declare, and optional
 fields. Interface declarations and direct object type aliases report their
 properties, method parameters and returns, and index signatures individually.
-Function type parameters and returns nested in another annotation contribute to
-that enclosing finding. When one annotation contains both, `any` takes
-precedence over `unknown`.
+Function and constructor signature parameters and returns nested in another
+annotation contribute to that enclosing finding. When one annotation contains
+both, `any` takes precedence over `unknown`.
 
 ## Output
 
@@ -170,9 +170,9 @@ variables and class fields (for example, `const x = 5` or `value = 5`) are not
 flagged — only explicit annotation sites are audited.
 
 Nested `any` and `unknown` are propagated through supported TypeScript type
-annotations, including type predicates and mapped-type key constraints,
-remapped keys, and values. When both occur in one annotation, `any` takes
-precedence.
+annotations, including function and constructor signatures, type predicates,
+and mapped-type key constraints, remapped keys, and values. When both occur in
+one annotation, `any` takes precedence.
 
 ## Contributing
 

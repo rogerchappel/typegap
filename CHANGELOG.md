@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Reject malformed `--min-coverage` values instead of accepting numeric prefixes.
+- Classify weak types in constructor signature parameters as well as returns.
 
 All notable changes to this project will be documented in this file.
 
