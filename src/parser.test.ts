@@ -173,6 +173,26 @@ describe('classifyTypeAnnotation for nested weak types', () => {
   });
 
   it.each([
+    ['any parameter', 'new (value: any) => Widget', AnnotationStatus.any],
+    ['unknown parameter', 'new (value: unknown) => Widget', AnnotationStatus.unknown],
+    ['any return', 'new (value: string) => any', AnnotationStatus.any],
+    ['unknown return', 'new (value: string) => unknown', AnnotationStatus.unknown],
+    ['fully typed constructor', 'new (value: string) => Widget', AnnotationStatus.explicit],
+  ])('classifies a constructor type with an %s', (_name, annotation, expected) => {
+    const nodes = parseSource(`const Factory: ${annotation} = null as never;`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(expected);
+  });
+
+  it.each([
+    'new (value: unknown) => any',
+    'new (value: any) => unknown',
+    'new (first: unknown, second: any) => Widget',
+  ])('gives any deterministic precedence within constructor type %s', annotation => {
+    const nodes = parseSource(`const Factory: ${annotation} = null as never;`);
+    expect(nodes.find(node => node.kind === 'var')?.status).toBe(AnnotationStatus.any);
+  });
+
+  it.each([
     '{ first: unknown; second: any }',
     '{ first: any; second: unknown }',
     '(first: unknown, second: any) => unknown',
